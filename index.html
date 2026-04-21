@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VVIP Panel | Direct Messenger Chat</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>   
+       * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body, html {
+            height: 100%; width: 100%;
+            background: #000;
+            overflow-x: hidden;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #bc13fe; border-radius: 3px; }
+
+        /* ── 3D BACKGROUND ── */
+        #vanta-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+        }
+
+        /* ── FLOATING PARTICLES ── */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            animation: floatParticle linear infinite;
+        }
+
+        @keyframes floatParticle {
+            0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { transform: translateY(-20px) scale(1); opacity: 0; }
+        }
+
+        /* ── MESSENGER BUTTON ── */
+        .fb-chat-btn {
+            position: fixed;
+            bottom: 25px; right: 25px;
+            background: linear-gradient(135deg, #0084ff, #0050cc);
+            width: 62px; height: 62px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 28px;
+            z-index: 9999;
+            border: none;
+            cursor: pointer;
+            animation: messengerPulse 2s infinite;
+            transition: transform 0.2s ease;
+            box-shadow: 0 4px 20px rgba(0,132,255,0.5);
+        }
+        .fb-chat-btn:hover { transform: scale(1.15) rotate(8deg); }
+        .fb-chat-btn:active { transform: scale(0.95); }
+
+        /* ── ANIMATIONS ── */
+        @keyframes messengerPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(0,132,255,0.5), 0 4px 20px rgba(0,132,255,0.3); }
+            50% { box-shadow: 0 0 45px rgba(0,132,255,1), 0 0 70px rgba(0,132,255,0.4); }
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(188,19,254,0.35), inset 0 0 20px rgba(188,19,254,0.04); }
+            50% { box-shadow: 0 0 55px rgba(188,19,254,0.75), inset 0 0 35px rgba(188,19,254,0.1); }
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(28px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0)   scale(1); }
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        @keyframes successPop {
+            0%   { transform: scale(0.5); opacity: 0; }
+            70%  { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes scanLine {
+            0%   { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        /* ── LOGIN SCREEN ── */
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(3px);
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 380px;
+            padding: 36px 30px 28px;
+            border: 1.5px solid rgba(188,19,254,0.6);
+            border-radius: 24px;
+            text-align: center;
+            background: rgba(6,6,6,0.95);
+            animation: borderGlow 3s infinite, fadeSlideIn 0.5s ease;
+            backdrop-filter: blur(18px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Scan line effect */
+        .login-box::before {
+            content: '';
+            position: absolute;
+            left: 5; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(188,19,254,0.6), transparent);
+            animation: scanLine 3s linear infinite;
+            pointer-events: none;
+        }
+
+        .vvip-label {
+            display: inline-block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            letter-spacing: 4px;
+            color: rgba(188,19,254,0.7);
+            border: 1px solid rgba(188,19,254,0.3);
+            border-radius: 6px;
+            padding: 4px 12px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .login-box h2 {
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            letter-spacing: 3px;
+            margin-bottom: 4px;
+        }
+
+        .price-tag {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(90deg, #bc13fe, #00d4ff, #bc13fe);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 2.5s linear infinite;
+            font-size: 44px;
+            font-weight: 900;
+            display: block;
+            margin: 6px 0 16px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 16px;
+        }
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: rgba(188,19,254,0.2);
+        }
+        .divider-text {
+            color: rgba(255,255,255,0.3);
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+/* QR Box */
+.qr-wrapper {
+    width: 80%;
+    max-width: 260px;
+    aspect-ratio: 1/1;
+    margin: auto;
+}
+
+.qr-box {
+    width: 100%;              /* 🔥 99% होइन */
+    height: 100%;
+    background: #fff;
+    border-radius: 12px;      /* 🔥 little smooth */
+    padding: 8px;             /* 🔥 balanced padding */
+    border: 3px solid #bc13fe;
+    box-shadow: 0 0 25px rgba(188,19,254,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.qr-box img {
+    width: 116%;              /* 🔥 correct */
+    height: 116%;
+    object-fit: contain;      /* 🔥 best for QR */
+    display: block;
+}
+
+/* QR corner decorations */
+.qr-corner {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: #bc13fe;
+    border-style: solid;
+}
+        .qr-corner.tl { top: -4px; left: -4px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+        .qr-corner.tr { top: -4px; right: -4px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+        .qr-corner.bl { bottom: -4px; left: -4px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+        .qr-corner.br { bottom: -4px; right: -4px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+        .esewa-label {
+            color: rgba(255,255,255,0.45);
+            font-size: 15px; #fff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 7px;
+        }
+        .esewa-val {
+            color: #00d4ff;
+            font-weight: 700;
+            font-size: 22px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 12px rgba(0,212,255,0.6);
+        }
+
+        .pass-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 14px;
+        }
+        .pass-container input {
+            width: 100%;
+            padding: 14px 48px 14px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(188,19,254,0.45);
+            background: rgba(0,0,0,0.65);
+            color: #00d4ff;
+            font-size: 17px;
+            font-family: 'Orbitron', sans-serif;
+            outline: none;
+            letter-spacing: 3px;
+            transition: border 0.3s, box-shadow 0.3s;
+        }
+        .pass-container input:focus {
+            border-color: #bc13fe;
+            box-shadow: 0 0 18px rgba(188,19,254,0.3);
+        }
+        .pass-container input::placeholder {
+            color: rgba(0,212,255,0.28);
+            letter-spacing: 1px;
+            font-size: 12px;
+        }
+        .toggle-pass {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(188,19,254,0.65);
+            cursor: pointer;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+        .toggle-pass:hover { color: #bc13fe; }
+
+        .btn-verify {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, #bc13fe, #7a00cc, #00d4ff);
+            background-size: 200% auto;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background-position 0.4s, transform 0.2s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-verify:hover {
+            background-position: right center;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(188,19,254,0.5);
+        }
+        .btn-verify:active { transform: scale(0.97); }
+
+        #err {
+            color: #ff4d4d;
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            min-height: 18px;
+            animation: fadeSlideIn 0.3s ease;
+        }
+
+        /* ── LOADING OVERLAY ── */
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .loader-ring {
+            width: 60px; height: 60px;
+            border: 4px solid rgba(188,19,254,0.2);
+            border-top-color: #bc13fe;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .loader-text {
+            color: rgba(188,19,254,0.9);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            letter-spacing: 3px;
+        }
+
+        /* ── STORE WRAPPER ── */
+        #store-wrapper {
+            position: relative;
+            z-index: 100;
+            min-height: 100vh;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 30px 16px 80px;
+        }
+
+        .store-container {
+            width: 100%;
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 24px;
+            border: 1.5px solid rgba(188,19,254,0.45);
+            border-radius: 24px;
+            background: rgba(6,6,6,0.96);
+            animation: borderGlow 3s infinite, fadeSlideIn 0.5s ease;
+            backdrop-filter: blur(18px);
+        }
+
+        .store-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .logout-btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 1px;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 5px 10px;
+            border-radius: 8px;
+            background: none;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover {
+            color: #ff4d4d;
+            border-color: rgba(255,77,77,0.4);
+        }
+
+        .store-title {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 17px;
+            letter-spacing: 2px;
+            color: #bc13fe;
+            text-shadow: 0 0 18px rgba(188,19,254,0.55);
+            flex: 1;
+        }
+
+        /* TikTok Share Button */
+        .tiktok-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px 16px;
+            background: linear-gradient(90deg, #010101, #1a1a1a);
+            border: 1.5px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.25s;
+            margin-bottom: 18px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .tiktok-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(105,201,208,0.08), rgba(254,44,85,0.08));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tiktok-btn:hover::before { opacity: 1; }
+        .tiktok-btn:hover {
+            border-color: rgba(254,44,85,0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(254,44,85,0.2);
+        }
+        .tiktok-icon {
+            font-size: 18px;
+            background: linear-gradient(45deg, #69c9d0, #ee1d52, #010101);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-counter {
+            text-align: center;
+            color: rgba(255,255,255,0.28);
+            font-size: 11px;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+            font-family: 'Orbitron', sans-serif;
+        }
+/* PANEL CARD */
+.panel-card {
+    background: linear-gradient(135deg, #0b0b0b, #110020);
+    border: 1px solid rgba(188,19,254,0.2);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    transition: 0.3s;
+    animation: fadeSlideIn 0.4s ease both;
+}
+
+.panel-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(188,19,254,0.6);
+    box-shadow: 0 8px 30px rgba(188,19,254,0.15);
+}
+
+/* 🔥 IMAGE SECTION FIXED */
+.panel-banner {
+    width: 100%;
+    height: auto;              /* ✅ FIX */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+    background: linear-gradient(135deg, #090909, #18002e);
+}
+
+.panel-banner img {
+    width: 100%;
+    max-width: 260px;          /* 🔥 control size */
+    height: auto;              /* ✅ no stretch */
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+/* INFO */
+.panel-info {
+    padding: 12px 16px;
+}
+
+.panel-name {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.panel-sub {
+    color: rgba(0,212,255,0.6);
+    font-size: 10px;
+    margin-top: 4px;
+    letter-spacing: 2px;
+}
+
+/* FOOTER */
+.panel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(0,0,0,0.35);
+}
+
+.panel-badge {
+    font-size: 9px;
+    color: rgba(0,212,255,0.6);
+    border: 1px solid rgba(0,212,255,0.22);
+    border-radius: 6px;
+    padding: 3px 8px;
+    letter-spacing: 1px;
+}
+
+
+.btn-download {
+    padding: 8px 18px;
+    border: 1.5px solid #00d4ff;
+    color: #00d4ff;
+    border-radius: 8px;
+    font-size: 11px;
+    text-decoration: none;
+    transition: 0.25s;
+}
+
+.btn-download:hover {
+    background: #00d4ff;
+    color: #000;
+    box-shadow: 0 0 20px rgba(0,212,255,0.55);
+}
+
+        .btn-download:active { transform: scale(0.97); }
+
+        /* ── NAV BUTTONS ── */
+        .nav-btns {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+        }
+        .nav-btn {
+            flex: 1;
+            padding: 13px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            letter-spacing: 1px;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover { transform: translateY(-2px); }
+        .nav-btn:active { transform: scale(0.97); }
+        .nav-btn-back {
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.55);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .nav-btn-back:hover { background: rgba(255,255,255,0.08); }
+        .nav-btn-next {
+            background: linear-gradient(90deg, #bc13fe, #8800cc);
+            color: #fff;
+            box-shadow: 0 0 22px rgba(188,19,254,0.4);
+        }
+        .nav-btn-next:hover { box-shadow: 0 0 35px rgba(188,19,254,0.65); }
+
+        /* ── SUCCESS KEY MODAL ── */
+        #key-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9997;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .key-modal-box {
+            width: 100%;
+            max-width: 360px;
+            background: rgba(8,8,8,0.98);
+            border: 1.5px solid rgba(188,19,254,0.7);
+            border-radius: 24px;
+            padding: 32px 24px;
+            text-align: center;
+            animation: successPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+            box-shadow: 0 0 60px rgba(188,19,254,0.3);
+        }
+        .success-icon {
+            font-size: 52px;
+            color: #00d4ff;
+            margin-bottom: 12px;
+            text-shadow: 0 0 20px rgba(0,212,255,0.7);
+        }
+        .key-modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        .key-modal-sub {
+            color: rgba(255,255,255,0.4);
+            font-size: 11px;
+            margin-bottom: 20px;
+        }
+        .key-display {
+            background: rgba(0,212,255,0.05);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            letter-spacing: 4px;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0,212,255,0.5);
+            margin-bottom: 16px;
+            word-break: break-all;
+        }
+        .btn-copy {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(90deg, #00d4ff, #0099cc);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: 12px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 10px;
+        }
+        .btn-copy:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-modal-close {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: rgba(255,255,255,0.4);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-modal-close:hover {
+            border-color: rgba(255,255,255,0.25);
+            color: rgba(255,255,255,0.7);
+        }
+    </style>
+</head>
+<body>
+
+<div id="vanta-bg"></div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" style="display:none; position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); flex-direction:column; gap:16px; justify-content:center; align-items:center;">
+    <div class="loader-ring"></div>
+    <p class="loader-text">VERIFYING...</p>
+</div>
+
+<!-- Key Success Modal -->
+<div id="key-modal">
+    <div class="key-modal-box">
+        <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <p class="key-modal-title">PAYMENT SUCCESS!</p>
+        <p class="key-modal-sub">तपाईंको Key तयार छ। Copy गर्नुस्</p>
+        <div class="key-display" id="generated-key">----</div>
+        <button class="btn-copy" onclick="copyKey()">
+            <i class="fa-solid fa-copy" style="margin-right:8px;"></i>COPY KEY
+        </button>
+        <button class="btn-modal-close" onclick="closeKeyModal()">
+            <i class="fa-solid fa-xmark" style="margin-right:6px;"></i>CLOSE
+        </button>
+    </div>
+</div>
+
+<!-- Messenger Button -->
+<button class="fb-chat-btn" onclick="openMessenger()">
+    <i class="fab fa-facebook-messenger"></i>
+</button>
+
+<!-- ══════════ LOGIN SCREEN ══════════ -->
+<div id="login-screen">
+    <div class="login-box">
+    
+           <!-- TikTok Share Button -->
+      <button class="tiktok-btn" onclick="openTikTokFallback()">
+    <span class="tiktok-icon"><i class="fab fa-tiktok"></i></span>
+    <span>PAYMENT गरेको फोटो पठाउनुस click me</span>
+</button>
+    
+        <span class="vvip-label">ANUBHAB X</span>
+        <h2>BUY FOR KEY</h2>
+        <span class="price-tag">Rs. 40</span>
+
+        <div class="divider">
+            <div class="divider-line"></div>
+            <span class="divider-text">SCAN TO PAY</span>
+            <div class="divider-line"></div>
+        </div>
+
+        <!-- eSewa QR Photo — आफ्नो QR image यहाँ राख्नुस् -->
+        <div class="qr-wrapper">
+            <div class="qr-box">
+            
+              
+                <!--
+                    आफ्नो real eSewa QR Photo को link यहाँ राख्नुस्:
+                    <img src="YOUR_ESEWA_QR_IMAGE_URL" alt="eSewa QR">
+
+                    वा Imgur/Google Drive मा upload गरेर link राख्नुस्।
+                    अहिलेको लागि generated QR छ।
+                -->
+              <img src="1776439481256.jpg" alt="eSewa QR"
+                  alt="eSewa QR">
+                >
+            </div>
+            <div class="qr-corner tl"></div>
+            <div class="qr-corner tr"></div>
+            <div class="qr-corner bl"></div>
+            <div class="qr-corner br"></div>
+        </div>
+
+        <p class="esewa-label">eSewa Number</p>
+        <p class="esewa-val">9768953400</p>
+
+        <div class="pass-container">
+            <input
+                type="password"
+                id="key-input"
+                placeholder="Payment पछि Key Enter गर्नुस्"
+                autocomplete="off"
+                spellcheck="false"
+            >
+            <i class="fa-solid fa-eye toggle-pass" id="eyeIcon" onclick="playSound('click'); togglePassword()"></i>
+        </div>
+
+        <button class="btn-verify" onclick="playSound('verify'); checkKey()">
+            <i class="fa-solid fa-unlock-keyhole" style="margin-right:8px;"></i>VERIFY & LOGIN
+        </button>
+        <p id="err"></p>
+    </div>
+</div>
+
+<!-- ══════════ STORE ══════════ -->
+<div id="store-wrapper">
+    <div class="store-container">
+        <div class="store-header">
+            <div style="width:64px;"></div>
+            <h2 class="store-title">ANUBHAB X STORE</h2>
+            <button class="logout-btn" onclick="playSound('click'); logout()">
+                <i class="fa-solid fa-right-from-bracket"></i> EXIT
+            </button>
+        </div>
+
+        <p class="page-counter" id="page-counter">PAGE 1 / 5</p>
+        <div id="content"></div>
+        <div class="nav-btns" id="nav-area"></div>
+    </div>
+</div>
+
+<script>
+/* ════════════════════════════════
+   SOUND ENGINE (Web Audio API)
+════════════════════════════════ */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function getAudioCtx() {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    return audioCtx;
+}
+
+function playSound(type) {
+    try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'click') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(900, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.06);
+            gain.gain.setValueAtTime(0.18, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.08);
+
+        } else if (type === 'verify') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(500, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.12);
+            gain.gain.setValueAtTime(0.22, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.18);
+
+        } else if (type === 'success') {
+            // Two-tone success
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, ctx.currentTime);
+            osc.frequency.setValueAtTime(900, ctx.currentTime + 0.12);
+            osc.frequency.setValueAtTime(1200, ctx.currentTime + 0.24);
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.4);
+
+        } else if (type === 'error') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.2);
+
+        } else if (type === 'download') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1100, ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.15);
+        }
+    } catch (e) {}
+}
+
+/* Add touch sound to all interactive elements */
+document.addEventListener('touchstart', function(e) {
+    const el = e.target.closest('button, a, input, .toggle-pass, .panel-card');
+    if (el) playSound('click');
+}, { passive: true });
+
+/* ════════════════════════════════
+   VANTA 3D BACKGROUND
+════════════════════════════════ */
+let vantaEffect, rot = 0;
+
+function initVanta() {
+    if (typeof VANTA === 'undefined') return;
+    vantaEffect = VANTA.NET({
+        el: "#vanta-bg",
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: true,
+        color: 0xbc13fe,
+        backgroundColor: 0x000000,
+        points: 14,
+        maxDistance: 22,
+        spacing: 17,
+        showDots: true
+    });
+    animateVanta();
+}
+
+function animateVanta() {
+    rot += 0.004;
+    if (vantaEffect) {
+        vantaEffect.options.points = 14 + Math.sin(rot) * 3;
+        vantaEffect.options.maxDistance = 22 + Math.cos(rot * 0.7) * 4;
+    }
+    requestAnimationFrame(animateVanta);
+}
+
+/* ════════════════════════════════
+   FLOATING PARTICLES
+════════════════════════════════ */
+function spawnParticle() {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const colors = ['#bc13fe', '#00d4ff', '#7a00cc', '#0084ff'];
+    p.style.cssText = `
+        left: ${Math.random() * 100}%;
+        background: ${colors[Math.floor(Math.random() * colors.length)]};
+        width: ${Math.random() * 4 + 2}px;
+        height: ${Math.random() * 4 + 2}px;
+        animation-duration: ${Math.random() * 8 + 6}s;
+        animation-delay: ${Math.random() * 4}s;
+        opacity: 0;
+        box-shadow: 0 0 6px currentColor;
+    `;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 14000);
+}
+
+/* ════════════════════════════════
+   MESSENGER
+════════════════════════════════ */
+function openMessenger() {
+    window.location.href = "https://www.facebook.com/messages/t/ar.kinggo";
+}
+
+/* ════════════════════════════════
+   PASSWORD TOGGLE
+════════════════════════════════ */
+function togglePassword() {
+    const input = document.getElementById("key-input");
+    const icon  = document.getElementById("eyeIcon");
+    const isHidden = input.type === "password";
+    input.type = isHidden ? "text" : "password";
+    icon.className = `fa-solid fa-eye${isHidden ? '-slash' : ''} toggle-pass`;
+}
+
+/* ════════════════════════════════
+   LOADING HELPERS
+════════════════════════════════ */
+function showLoading()  { document.getElementById('loading-overlay').style.display = 'flex'; }
+function hideLoading()  { document.getElementById('loading-overlay').style.display = 'none'; }
+
+/* ════════════════════════════════
+   LOGIN / KEY CHECK
+   ── KEY हरू यहाँ थप्नुस् ──
+════════════════════════════════ */
+const VALID_KEYS = [
+    "x1",   /* ← यहाँ आफ्नो real keys राख्नुस् */
+    "x1",
+    "x1"            /* test key */
+];
+
+function checkKey() {
+    const val = document.getElementById('key-input').value.trim().toUpperCase();
+    const err = document.getElementById('err');
+
+    if (!val) {
+        playSound('error');
+        showErr('<i class="fa-solid fa-triangle-exclamation"></i> Key खाली छ!');
+        shakeInput();
+        return;
+    }
+
+    showLoading();
+
+    setTimeout(() => {
+        hideLoading();
+        const normalizedKeys = VALID_KEYS.map(k => k.toUpperCase());
+
+        if (normalizedKeys.includes(val)) {
+            playSound('success');
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('store-wrapper').style.display = 'flex';
+            render(0);
+        } else {
+            playSound('error');
+            showErr('<i class="fa-solid fa-circle-xmark"></i> Invalid Key! पैसा तिरेपछि Messenger मा सोध्नुस्।');
+            shakeInput();
+        }
+    }, 1200);
+}
+
+function showErr(msg) {
+    const err = document.getElementById('err');
+    err.innerHTML = msg;
+    err.style.animation = 'none';
+    requestAnimationFrame(() => { err.style.animation = 'fadeSlideIn 0.3s ease'; });
+    setTimeout(() => { err.innerHTML = ''; }, 3500);
+}
+
+function shakeInput() {
+    const input = document.getElementById('key-input');
+    input.style.borderColor = 'rgba(255,60,60,0.8)';
+    input.style.boxShadow = '0 0 15px rgba(255,60,60,0.3)';
+    input.animate([
+        { transform: 'translateX(0)' },
+        { transform: 'translateX(-8px)' },
+        { transform: 'translateX(8px)' },
+        { transform: 'translateX(-6px)' },
+        { transform: 'translateX(6px)' },
+        { transform: 'translateX(0)' }
+    ], { duration: 320, easing: 'ease-out' });
+    setTimeout(() => {
+        input.style.borderColor = 'rgba(188,19,254,0.45)';
+        input.style.boxShadow = '';
+    }, 3500);
+}
+
+function logout() {
+    document.getElementById('store-wrapper').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('key-input').value = '';
+}
+
+/* ════════════════════════════════
+   TIKTOK SHARE
+════════════════════════════════ */
+function shareTikTok() {
+    const shareData = {
+        title: 'VVIP Panel Store - Payment Success!',
+        text: '✅ eSewa Payment गरेर VVIP Panel Store access गरें! Rs.40 मा 10 VVIP Panels! 🔥\n#VVIP #FreeFire #Panel #Nepal',
+    };
+
+    if (navigator.share) {
+        navigator.share(shareData)
+            .then(() => playSound('success'))
+            .catch(() => openTikTokFallback());
+    } else {
+        openTikTokFallback();
+    }
+}
+
+function openTikTokFallback() {
+    // Direct TikTok profile link
+    const tiktokUrl = 'https://www.tiktok.com/@raianubhab?_r=1&_t=ZS-95apeLuuKfg';
+    
+    // Browser ma kholne prayas
+    window.location.href = tiktokUrl;
+
+    // Screenshot ko lagi alert
+    setTimeout(() => {
+        alert('📱 TikTok App ma Payment screenshot share garnuस्!\n\nCaption: ANUBHAB X STORE 🔥');
+    }, 800);
+}
+
+/* ════════════════════════════════
+   KEY MODAL
+════════════════════════════════ */
+function showKeyModal(key) {
+    document.getElementById('generated-key').textContent = key;
+    document.getElementById('key-modal').style.display = 'flex';
+}
+
+function closeKeyModal() {
+    document.getElementById('key-modal').style.display = 'none';
+}
+
+function copyKey() {
+    const key = document.getElementById('generated-key').textContent;
+    navigator.clipboard.writeText(key).then(() => {
+        playSound('success');
+        const btn = document.querySelector('.btn-copy');
+        btn.innerHTML = '<i class="fa-solid fa-check" style="margin-right:8px;"></i>COPIED!';
+        btn.style.background = 'linear-gradient(90deg, #00ff99, #00cc77)';
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fa-solid fa-copy" style="margin-right:8px;"></i>COPY KEY';
+            btn.style.background = '';
+        }, 2000);
+    }).catch(() => {
+        playSound('error');
+        prompt('Key copy गर्नुस्:', key);
+    });
+}
+
+/* PANELS DATA
+   ── Link हरू यहाँ अपडेट गर्नुस् ──
+════════════════════════════════ */
+const panels = [
+    { name: "1: MIUI HEADSHOT", tag: "HEADSHOT", badge: "HEADSHOT",
+      link: "https://www.mediafire.com/file/aner6sncbg9nmj4/ANUBHAB+X+MIUI+PANEL+NECK+HEADSHOT.zip/file",
+      image: "image.jpg"
+    },
+
+    { name: "2: THE KING CHEAT", tag: "KING CHEAT", badge: "KING CHEAT",
+      link: "https://www.mediafire.com/file/lvn1w5ixz4s290q/KHIG+CHEAT+ANTI+BAND.zip/file",
+      image: "images/1776767299500.png"
+    },
+
+    { name: "3: SKIN TOOL", tag: "SKIN TOOL", badge: "SKIN TOOL",
+      link: "https://www.mediafire.com/file/n3r5xbjb4i7br3m/ANUBHAH+X+SKIN+TOOL.apk.zip/file",
+      image: "images/1776693179734.png"
+    },
+
+    { name: "4: 3D HOLOGRAM", tag: "HOLOGRAM", badge: "HOLOGRAM",
+      link: "https://www.mediafire.com/file/igklzj2lm1jg42e/ANUBHAB-X_HOLOGRAM_FFMAX.7z/file",
+      image: "images/1776712822352.png"
+    },
+
+    { name: "5: SKIN TOOL", tag: "SKIN TOOL", badge: "SKIN TOOL",
+      link: "https://www.mediafire.com/file/n3r5xbjb4i7br3m/ANUBHAH+X+SKIN+TOOL.apk.zip/file",
+      image: "images/1776693179734.png"
+    },
+
+    { name: "6: REDMI POCO BODY HS", tag: "BODY HS", badge: "BODY HS",
+      link: "https://www.mediafire.com/file/gfj01gevgssisnj/ANUBHAB+X+MIUI+BODY.HS.7z/file",
+      image: "images/1776768316293.png"
+    },
+
+    { name: "7: ANTENNA BLUE", tag: "ANTENNA", badge: "BLUE",
+      link: "#",
+      image: "images/antenna.jpg"
+    },
+
+    { name: "8: GHOST MODE", tag: "GHOST", badge: "MODE",
+      link: "#",
+      image: "images/ghost.jpg"
+    },
+
+    { name: "9: CONFIG MAX", tag: "CONFIG", badge: "MAX",
+      link: "#",
+      image: "images/config.jpg"
+    },
+
+    { name: "10: VVIP BYPASS", tag: "BYPASS", badge: "VVIP",
+      link: "#",
+      image: "images/bypass.jpg"
+    }
+];
+
+/* ════════════════════════════════
+   RENDER STORE
+════════════════════════════════ */
+function render(page) {
+    const PER_PAGE = 2;
+    const totalPages = Math.ceil(panels.length / PER_PAGE);
+    const start = page * PER_PAGE;
+    const slice = panels.slice(start, start + PER_PAGE);
+
+    document.getElementById('page-counter').textContent = `PAGE ${page + 1} / ${totalPages}`;
+
+    document.getElementById('content').innerHTML = slice.map(p => `
+        <div class="panel-card">
+
+    <div class="panel-banner">
+        <img src="${p.image}" alt="${p.name}">
+    </div>
+
+    <div class="panel-info">
+        <div class="panel-name">${p.name}</div>
+        <div class="panel-sub">FREE FIRE • NEPAL</div>
+    </div>
+
+    <div class="panel-footer">
+        <span class="panel-badge">${p.badge}</span>
+        <a href="${p.link}" class="btn-download"
+           onclick="return handleDownload(event, '${p.link}')">
+           <i class="fa-solid fa-download"></i> DOWNLOAD
+        </a>
+    </div>
+
+</div>
+    `).join('');
+
+    let nav = '';
+    if (page > 0)
+        nav += `<button class="nav-btn nav-btn-back" onclick="playSound('click'); render(${page - 1})">
+            <i class="fa-solid fa-arrow-left" style="margin-right:6px;"></i>BACK
+        </button>`;
+    if (start + PER_PAGE < panels.length)
+        nav += `<button class="nav-btn nav-btn-next" onclick="playSound('click'); render(${page + 1})">
+            NEXT<i class="fa-solid fa-arrow-right" style="margin-left:6px;"></i>
+        </button>`;
+
+    document.getElementById('nav-area').innerHTML = nav;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function handleDownload(e, link) {
+    if (link === '#') {
+        e.preventDefault();
+        playSound('error');
+        alert('⚡ File Coming Soon!\nMessenger मा contact गर्नुस्।');
+        return false;
+    }
+    playSound('download');
+    return true;
+}
+
+/* ════════════════════════════════
+   INIT
+════════════════════════════════ */
+window.addEventListener('load', () => {
+    initVanta();
+    // Spawn particles every 2s
+    setInterval(spawnParticle, 2000);
+    for (let i = 0; i < 5; i++) setTimeout(spawnParticle, i * 400);
+});
+
+/* Enter key login support */
+document.getElementById('key-input').addEventListener('keypress', e => {
+    if (e.key === 'Enter') { playSound('verify'); checkKey(); }
+});
+</script>
+</body>
+</html>
